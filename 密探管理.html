@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>代号鸢 - 密探抽卡记录</title>
+    <style>
+        :root {
+            --bg-color: #121214;
+            --card-bg: #1e1e24;
+            --accent-gold: #d4af37;
+            --accent-gold-light: #f3e5ab;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #33333e;
+            --danger-color: #e74c3c;
+            --wind-color: #7ec87e;
+            --fire-color: #e8744a;
+            --earth-color: #c4a35a;
+            --water-color: #5b9bd5;
+            --yin-color: #9b7ec8;
+            --yang-color: #e8c84a;
+            --chaos-color: #9a8fb8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 15px;
+            max-width: 820px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+            touch-action: manipulation;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--accent-gold);
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-btn {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active {
+            background-color: var(--accent-gold);
+            color: #000;
+            border-color: var(--accent-gold);
+        }
+
+        .pool-select-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .pool-select-bar.hidden {
+            display: none;
+        }
+
+        .select-input {
+            flex: 1;
+            min-width: 140px;
+            padding: 10px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--accent-gold-light);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .dashboard {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--accent-gold-light);
+            margin-top: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .up-agent-container {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(30, 30, 36, 0.9));
+            border: 1px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .up-agent-container.hidden {
+            display: none;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .agent-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 5px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .agent-card:active {
+            transform: scale(0.95);
+        }
+
+        .agent-card:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .agent-card.up-card {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+        }
+
+        .agent-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            border: 2px solid var(--accent-gold);
+            margin-bottom: 6px;
+            overflow: hidden;
+            background-size: cover;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+        }
+
+        .agent-name {
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .agent-element-tag {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 3px;
+            color: #fff;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .element-group-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #ccc;
+            margin: 18px 0 8px;
+            padding: 5px 0 5px 12px;
+            border-left: 4px solid;
+            border-radius: 0 4px 4px 0;
+            background-color: rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .element-group-title .count-badge {
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1px 8px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+        }
+
+        .element-filter-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding: 8px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .element-filter-btn {
+            padding: 5px 12px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .element-filter-btn.active {
+            color: #000;
+            font-weight: bold;
+            border-color: transparent;
+        }
+
+        .element-filter-btn.all-btn.active {
+            background-color: var(--accent-gold);
+            color: #000;
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            z-index: 5;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .agent-delete-btn {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            background: rgba(180, 40, 40, 0.75);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 6;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .history-card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 5px;
+        }
+
+        .history-card {
+            width: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .history-card-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #333;
+            border: 2px solid var(--accent-gold);
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .history-card-avatar .delete-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger-color);
+            color: #fff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .history-card-pulls {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background-color: #2a2a35;
+        }
+
+        .btn-sm {
+            padding: 7px 12px;
+            font-size: 0.78rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border: 1px solid var(--accent-gold);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 420px;
+            padding: 20px;
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            margin-bottom: 15px;
+            color: var(--accent-gold);
+            font-size: 1.05rem;
+        }
+
+        .modal-input,
+        .modal-select,
+        .modal-textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .modal-textarea {
+            min-height: 150px;
+            resize: vertical;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+
+        .modal-select {
+            text-align: left;
+            text-align-last: center;
+            appearance: auto;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .modal-btns .btn {
+            flex: 1;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-gold);
+            color: #000;
+            font-weight: bold;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #c4a030;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            text-align: left;
+            padding: 5px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: 45%;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .avatar-crop-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--accent-gold);
+            background-color: #333;
+            position: relative;
+            touch-action: none;
+            user-select: none;
+            background-size: cover;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+        }
+
+        .reset-pos-btn {
+            margin-bottom: 10px;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+        }
+
+        .copy-hint {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .stat-card .value {
+                font-size: 1.1rem;
+            }
+
+            .agent-grid {
+                grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+                gap: 8px;
+            }
+
+            .agent-avatar {
+                width: 48px;
+                height: 48px;
+            }
+
+            .history-card-avatar {
+                width: 48px;
+                height: 48px;
+            }
+
+            .history-card {
+                width: 60px;
+            }
+
+            .pool-select-bar {
+                gap: 6px;
+            }
+
+            .btn-sm {
+                padding: 6px 8px;
+                font-size: 0.7rem;
+            }
+
+            .checkbox-item {
+                width: 100%;
+            }
+
+            .avatar-crop-container {
+                width: 160px;
+                height: 160px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>代号鸢 · 密探抽卡记录</h1>
+    </header>
+
+    <!-- 分类切换 -->
+    <div class="category-tabs">
+        <button class="category-btn active" id="tabLimited" onclick="switchCategory('limited')">限时 UP 池</button>
+        <button class="category-btn" id="tabStandard" onclick="switchCategory('standard')">常驻池</button>
+    </div>
+
+    <!-- 限时池切换与管理条 -->
+    <div class="pool-select-bar" id="limitedSelectBar">
+        <select id="limitedPoolSelect" class="select-input" onchange="switchLimitedPool(this.value)"></select>
+        <button class="btn btn-sm" onclick="openCreatePoolModal()">+ 新建卡池</button>
+        <button class="btn btn-sm" onclick="openSetUPModal()">设置 UP</button>
+        <button class="btn btn-sm" style="color: var(--danger-color);" onclick="deleteCurrentPool()">删除池</button>
+    </div>
+
+    <!-- 看板 -->
+    <div class="dashboard">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">当前池总抽数</div>
+                <div class="value" id="totalPulls">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">金卡总数</div>
+                <div class="value" id="totalGolds">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">平均出金率</div>
+                <div class="value" id="goldRate">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UP 展柜 -->
+    <div class="up-agent-container" id="upContainer">
+        <div class="section-title" style="margin-bottom: 10px;">
+            <span>★ 当期 UP 密探 (点击快速登记)</span>
+        </div>
+        <div class="agent-grid" id="upAgentGrid" style="margin-bottom: 0;"></div>
+    </div>
+
+    <!-- 出金历史 -->
+    <div class="section-title">
+        <span>📜 出金历史</span>
+        <span style="font-size:0.75rem;color:var(--text-secondary);" id="historyCountLabel"></span>
+    </div>
+    <div class="history-list" id="historyList" style="background: none; border: none; padding: 0;"></div>
+
+    <!-- 密探仓库 -->
+    <div class="section-title">
+        <span>🏯 密探仓库</span>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm" id="manageModeBtn" onclick="toggleManageMode()">管理</button>
+            <button class="btn btn-sm" onclick="openAddAgentModal()">+ 新建密探</button>
+        </div>
+    </div>
+
+    <div class="element-filter-bar" id="elementFilterBar"></div>
+    <div id="agentWarehouse"></div>
+
+    <!-- 底部功能栏 -->
+    <div class="actions-bar">
+        <button class="btn" onclick="openExportModal()">📤 导出备份</button>
+        <button class="btn" onclick="openImportModal()">📥 导入备份</button>
+        <button class="btn" style="color: var(--danger-color);" onclick="clearCurrentPoolRecords()">清空当前池记录</button>
+    </div>
+
+    <!-- 隐藏文件输入 -->
+    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;"
+        onchange="handleAvatarUpload(event)">
+    <input type="file" id="importFile" accept=".json,.txt" style="display: none;" onchange="importDataFromFile(event)">
+
+    <!-- 录入弹窗 -->
+    <div class="modal-overlay" id="recordModal">
+        <div class="modal">
+            <h3 class="modal-title" id="modalAgentName">登记出金</h3>
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">本次距上次出金使用了多少抽？</p>
+            <input type="number" id="pullCountInput" class="modal-input" placeholder="请输入抽数" min="1" value="10">
+            <div class="modal-btns">
+                <button class="btn" onclick="closeModal('recordModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmRecord()">确认录入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建卡池弹窗 -->
+    <div class="modal-overlay" id="createPoolModal">
+        <div class="modal">
+            <h3 class="modal-title">新建限时 UP 池</h3>
+            <input type="text" id="newPoolNameInput" class="modal-input" placeholder="例如：孙策UP池、古风池">
+            <div class="modal-btns">
+                <button class="btn" onclick="closeModal('createPoolModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmCreatePool()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置 UP -->
+    <div class="modal-overlay" id="setUpModal">
+        <div class="modal">
+            <h3 class="modal-title">勾选当前池 UP 密探</h3>
+            <div class="checkbox-group" id="upCheckboxes"></div>
+            <div class="modal-btns">
+                <button class="btn" onclick="closeModal('setUpModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmSetUpAgents()">保存 UP 设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增密探 -->
+    <div class="modal-overlay" id="addAgentModal">
+        <div class="modal">
+            <h3 class="modal-title">添加新密探</h3>
+            <input type="text" id="newAgentNameInput" class="modal-input" placeholder="密探名字">
+            <select id="newAgentElementInput" class="modal-select">
+                <option value="风">风</option>
+                <option value="火">火</option>
+                <option value="地">地</option>
+                <option value="水">水</option>
+                <option value="阴">阴</option>
+                <option value="阳">阳</option>
+                <option value="混沌">混沌</option>
+            </select>
+            <div class="modal-btns">
+                <button class="btn" onclick="closeModal('addAgentModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmAddAgent()">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头像裁剪弹窗 -->
+    <div class="modal-overlay" id="avatarPreviewModal">
+        <div class="modal">
+            <h3 class="modal-title">调整头像位置</h3>
+            <div class="avatar-crop-container" id="avatarCropContainer"></div>
+            <button class="btn btn-sm reset-pos-btn" onclick="resetCropPosition()">重置位置</button>
+            <div class="modal-btns">
+                <button class="btn" onclick="cancelAvatarUpload()">重新选择</button>
+                <button class="btn btn-primary" onclick="confirmAvatarUpload()">确认使用</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出备份弹窗 -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <h3 class="modal-title">导出备份数据</h3>
+            <p class="copy-hint">长按下方文本框全选复制，粘贴到备忘录或聊天窗口保存</p>
+            <textarea id="exportTextArea" class="modal-textarea" readonly></textarea>
+            <div class="modal-btns">
+                <button class="btn" onclick="copyExportText()">📋 复制到剪贴板</button>
+                <button class="btn btn-primary" onclick="closeModal('exportModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入备份弹窗 -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <h3 class="modal-title">导入备份数据</h3>
+            <p class="copy-hint">将之前复制的 JSON 数据粘贴到下方文本框中</p>
+            <textarea id="importTextArea" class="modal-textarea" placeholder="在此粘贴 JSON 备份数据..."></textarea>
+            <div class="modal-btns">
+                <button class="btn" onclick="closeModal('importModal')">取消</button>
+                <button class="btn btn-primary" onclick="confirmImportText()">确认导入</button>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-secondary);margin-top:12px;">或直接选择文件导入（电脑端更方便）</p>
+            <button class="btn btn-sm" style="margin-top:8px;"
+                onclick="document.getElementById('importFile').click()">选择文件导入</button>
+        </div>
+    </div>
+
+    <script>
+        const ELEMENTS = ['风', '火', '地', '水', '阴', '阳', '混沌'];
+        const ELEMENT_COLORS = {
+            '风': '#7ec87e',
+            '火': '#e8744a',
+            '地': '#c4a35a',
+            '水': '#5b9bd5',
+            '阴': '#9b7ec8',
+            '阳': '#e8c84a',
+            '混沌': '#9a8fb8'
+        };
+
+        const DEFAULT_AGENTS = [
+            { id: 'sunce', name: '孙策', avatar: '', element: '火', avatarPos: { x: 50, y: 50 } },
+            { id: 'liubi', name: '刘备', avatar: '', element: '阳', avatarPos: { x: 50, y: 50 } },
+            { id: 'yuanbao', name: '袁绍', avatar: '', element: '地', avatarPos: { x: 50, y: 50 } },
+            { id: 'caocao', name: '曹操', avatar: '', element: '阴', avatarPos: { x: 50, y: 50 } },
+            { id: 'zhuge', name: '诸葛亮', avatar: '', element: '风', avatarPos: { x: 50, y: 50 } },
+            { id: 'zhouyu', name: '周瑜', avatar: '', element: '水', avatarPos: { x: 50, y: 50 } },
+            { id: 'luoshen', name: '甄宓', avatar: '', element: '水', avatarPos: { x: 50, y: 50 } },
+            { id: 'sunquan', name: '孙权', avatar: '', element: '阳', avatarPos: { x: 50, y: 50 } },
+            { id: 'huatuo', name: '华佗', avatar: '', element: '混沌', avatarPos: { x: 50, y: 50 } },
+            { id: 'lvmeng', name: '吕蒙', avatar: '', element: '水', avatarPos: { x: 50, y: 50 } }
+        ];
+
+        let appData = {
+            category: 'limited',
+            currentLimitedPoolId: 'pool_default',
+            agents: DEFAULT_AGENTS,
+            limitedPools: [
+                { id: 'pool_default', name: '孙策 UP 池', upAgentIds: ['sunce'], records: [] }
+            ],
+            standardPool: { records: [] }
+        };
+
+        let selectedAgent = null;
+        let uploadingAgentId = null;
+        let currentElementFilter = '全部';
+        let pendingAvatarDataUrl = null;
+        let pendingAvatarPos = { x: 50, y: 50 };
+        let isManageMode = false;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let startPosX = 50;
+        let startPosY = 50;
+
+        window.onload = function () {
+            loadLocalData();
+            appData.agents.forEach(agent => {
+                if (!agent.element) agent.element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+                if (!agent.avatarPos) agent.avatarPos = { x: 50, y: 50 };
+            });
+            renderUI();
+        };
+
+        function loadLocalData() {
+            const saved = localStorage.getItem('dhy_gacha_v4_data');
+            if (saved) {
+                try { appData = JSON.parse(saved); } catch (e) { console.error('读取失败', e); }
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('dhy_gacha_v4_data', JSON.stringify(appData));
+        }
+
+        function getCurrentLimitedPool() {
+            return appData.limitedPools.find(p => p.id === appData.currentLimitedPoolId) || appData.limitedPools[0];
+        }
+
+        function getCurrentRecords() {
+            if (appData.category === 'standard') return appData.standardPool.records;
+            return getCurrentLimitedPool().records;
+        }
+
+        function switchCategory(cat) {
+            appData.category = cat;
+            document.getElementById('tabLimited').classList.toggle('active', cat === 'limited');
+            document.getElementById('tabStandard').classList.toggle('active', cat === 'standard');
+            document.getElementById('limitedSelectBar').classList.toggle('hidden', cat !== 'limited');
+            saveData();
+            renderUI();
+        }
+
+        function switchLimitedPool(poolId) {
+            appData.currentLimitedPoolId = poolId;
+            saveData();
+            renderUI();
+        }
+
+        function toggleManageMode() {
+            isManageMode = !isManageMode;
+            renderUI();
+        }
+
+        function renderUI() {
+            const select = document.getElementById('limitedPoolSelect');
+            select.innerHTML = appData.limitedPools.map(p =>
+                `<option value="${p.id}" ${p.id === appData.currentLimitedPoolId ? 'selected' : ''}>${p.name}</option>`
+            ).join('');
+
+            const records = getCurrentRecords();
+            const totalGolds = records.length;
+            const totalPulls = records.reduce((sum, item) => sum + item.pulls, 0);
+            const rate = totalPulls > 0 ? ((totalGolds / totalPulls) * 100).toFixed(2) : '0.00';
+
+            document.getElementById('totalPulls').innerText = totalPulls;
+            document.getElementById('totalGolds').innerText = totalGolds;
+            document.getElementById('goldRate').innerText = `${rate}%`;
+
+            const poolLabel = appData.category === 'limited' ? getCurrentLimitedPool().name : '常驻池';
+            document.getElementById('historyCountLabel').innerText = `${poolLabel} · ${totalGolds} 条`;
+            document.getElementById('manageModeBtn').innerText = isManageMode ? '完成管理' : '管理';
+
+            renderUPContainer();
+            renderElementFilterBar();
+            renderAgentWarehouse();
+            renderHistory();
+        }
+
+        function renderUPContainer() {
+            const upContainer = document.getElementById('upContainer');
+            const upGrid = document.getElementById('upAgentGrid');
+            if (appData.category === 'standard') { upContainer.classList.add('hidden'); return; }
+
+            const currentPool = getCurrentLimitedPool();
+            const upIds = currentPool.upAgentIds || [];
+            if (upIds.length === 0) { upContainer.classList.add('hidden'); return; }
+
+            upContainer.classList.remove('hidden');
+            const upAgents = appData.agents.filter(a => upIds.includes(a.id));
+            upGrid.innerHTML = upAgents.map(agent => renderAgentCardHTML(agent, true)).join('');
+        }
+
+        function renderElementFilterBar() {
+            const bar = document.getElementById('elementFilterBar');
+            const allBtnClass = currentElementFilter === '全部' ? 'element-filter-btn all-btn active' :
+                'element-filter-btn all-btn';
+            const allBtnStyle = currentElementFilter === '全部' ? 'background-color: var(--accent-gold);' : '';
+            let html =
+                `<button class="${allBtnClass}" style="${allBtnStyle}" onclick="setElementFilter('全部')">全部</button>`;
+
+            ELEMENTS.forEach(el => {
+                const isActive = currentElementFilter === el;
+                const bgColor = isActive ? ELEMENT_COLORS[el] : 'var(--card-bg)';
+                const textColor = isActive ? '#000' : 'var(--text-secondary)';
+                html +=
+                    `<button class="element-filter-btn ${isActive ? 'active' : ''}" 
+                      style="background-color:${bgColor};color:${textColor};${isActive ? 'font-weight:bold;' : ''}" 
+                      onclick="setElementFilter('${el}')">${el}</button>`;
+            });
+            bar.innerHTML = html;
+        }
+
+        function setElementFilter(el) {
+            currentElementFilter = el;
+            renderElementFilterBar();
+            renderAgentWarehouse();
+        }
+
+        function renderAgentWarehouse() {
+            const container = document.getElementById('agentWarehouse');
+            let filteredAgents = appData.agents;
+            if (currentElementFilter !== '全部') {
+                filteredAgents = appData.agents.filter(a => a.element === currentElementFilter);
+            }
+
+            if (filteredAgents.length === 0) {
+                container.innerHTML =
+                    `<div style="text-align:center;color:var(--text-secondary);padding:20px 0;">暂无${currentElementFilter !== '全部' ? currentElementFilter + '属性' : ''}密探</div>`;
+                return;
+            }
+
+            if (currentElementFilter === '全部') {
+                let html = '';
+                ELEMENTS.forEach(el => {
+                    const agentsInGroup = appData.agents.filter(a => a.element === el);
+                    if (agentsInGroup.length === 0) return;
+                    const color = ELEMENT_COLORS[el] || '#aaa';
+                    html += `
+                    <div class="element-group-title" style="border-left-color: ${color};">
+                        <span style="color:${color};">◆</span> ${el} 
+                        <span class="count-badge">${agentsInGroup.length} 人</span>
+                    </div>
+                    <div class="agent-grid">
+                        ${agentsInGroup.map(agent => renderAgentCardHTML(agent, false)).join('')}
+                    </div>`;
+                });
+                container.innerHTML = html;
+            } else {
+                const color = ELEMENT_COLORS[currentElementFilter] || '#aaa';
+                container.innerHTML = `
+                <div class="element-group-title" style="border-left-color: ${color};">
+                    <span style="color:${color};">◆</span> ${currentElementFilter}
+                    <span class="count-badge">${filteredAgents.length} 人</span>
+                </div>
+                <div class="agent-grid">
+                    ${filteredAgents.map(agent => renderAgentCardHTML(agent, false)).join('')}
+                </div>`;
+            }
+        }
+
+        function renderAgentCardHTML(agent, isUp) {
+            const pos = agent.avatarPos || { x: 50, y: 50 };
+            const avatarStyle = agent.avatar ?
+                `background-image:url('${agent.avatar}'); background-position:${pos.x}% ${pos.y}%;` : '';
+            const avatarContent = agent.avatar ? '' : agent.name[0];
+            const elementColor = ELEMENT_COLORS[agent.element] || '#aaa';
+            const avatarBorderColor = isUp ? 'var(--accent-gold)' : elementColor;
+            const cardBorderColor = isUp ? 'var(--accent-gold)' : 'var(--border-color)';
+            const showDelete = !isUp && isManageMode;
+
+            return `
+            <div class="agent-card ${isUp ? 'up-card' : ''}" 
+                 style="border-color: ${cardBorderColor};"
+                 onclick="openRecordModal('${agent.id}', '${agent.name}')">
+                <button class="avatar-upload-btn" onclick="triggerUpload(event, '${agent.id}')">📷</button>
+                ${showDelete ? `<button class="agent-delete-btn" onclick="triggerDelete(event, '${agent.id}')">✕</button>` : ''}
+                <div class="agent-avatar" style="border-color: ${avatarBorderColor}; ${avatarStyle}">${avatarContent}</div>
+                <div class="agent-name">${agent.name}</div>
+                <div class="agent-element-tag" style="background-color: ${elementColor};">${agent.element}</div>
+            </div>`;
+        }
+
+        function renderHistory() {
+            const records = getCurrentRecords();
+            const historyContainer = document.getElementById('historyList');
+            historyContainer.innerHTML = '';
+
+            if (records.length === 0) {
+                historyContainer.innerHTML = `<div style="text-align:center;color:var(--text-secondary);padding:20px 0;">暂无出金记录</div>`;
+                return;
+            }
+
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'history-card-grid';
+
+            records.forEach((rec, index) => {
+                const agent = appData.agents.find(a => a.id === rec.agentId);
+                const avatarUrl = agent?.avatar || '';
+                const pos = agent?.avatarPos || { x: 50, y: 50 };
+                const displayName = agent ? agent.name : rec.agentName;
+
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.onclick = () => showRecordDetail(index);
+
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'history-card-avatar';
+                if (avatarUrl) {
+                    avatarDiv.style.backgroundImage = `url('${avatarUrl}')`;
+                    avatarDiv.style.backgroundPosition = `${pos.x}% ${pos.y}%`;
+                } else {
+                    avatarDiv.innerHTML = displayName[0];
+                }
+
+                const delBadge = document.createElement('span');
+                delBadge.className = 'delete-badge';
+                delBadge.innerHTML = '✕';
+                delBadge.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteRecord(index);
+                };
+                avatarDiv.appendChild(delBadge);
+
+                const pullsText = document.createElement('div');
+                pullsText.className = 'history-card-pulls';
+                pullsText.innerText = `${rec.pulls}抽`;
+
+                card.appendChild(avatarDiv);
+                card.appendChild(pullsText);
+                gridDiv.appendChild(card);
+            });
+
+            historyContainer.appendChild(gridDiv);
+        }
+
+        function showRecordDetail(index) {
+            const records = getCurrentRecords();
+            const rec = records[index];
+            if (!rec) return;
+            const detailMsg = `密探：${rec.agentName}\n抽数：${rec.pulls}\n日期：${new Date(rec.timestamp).toLocaleString()}\n\n点击“确定”删除此记录，点击“取消”关闭。`;
+            if (confirm(detailMsg)) deleteRecord(index);
+        }
+
+        // ========== 头像上传（带自由拖动裁剪） ==========
+        function triggerUpload(event, agentId) {
+            event.stopPropagation();
+            uploadingAgentId = agentId;
+            document.getElementById('avatarFileInput').click();
+        }
+
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                pendingAvatarDataUrl = e.target.result;
+                pendingAvatarPos = { x: 50, y: 50 };
+                const cropContainer = document.getElementById('avatarCropContainer');
+                cropContainer.style.backgroundImage = `url('${pendingAvatarDataUrl}')`;
+                cropContainer.style.backgroundPosition = '50% 50%';
+                document.getElementById('avatarPreviewModal').classList.add('active');
+                attachDragEvents(cropContainer);
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function attachDragEvents(container) {
+            container.onmousedown = startDrag;
+            container.ontouchstart = startDragTouch;
+            container.onmousemove = dragMove;
+            container.ontouchmove = dragMoveTouch;
+            container.onmouseup = endDrag;
+            container.ontouchend = endDrag;
+            container.ontouchcancel = endDrag;
+            container.onmouseleave = endDrag;
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            startPosX = pendingAvatarPos.x;
+            startPosY = pendingAvatarPos.y;
+        }
+
+        function startDragTouch(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                dragStartX = e.touches[0].clientX;
+                dragStartY = e.touches[0].clientY;
+                startPosX = pendingAvatarPos.x;
+                startPosY = pendingAvatarPos.y;
+                e.preventDefault(); // 阻止页面滚动
+            }
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const container = document.getElementById('avatarCropContainer');
+            const rect = container.getBoundingClientRect();
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            const moveX = (dx / rect.width) * 100;
+            const moveY = (dy / rect.height) * 100;
+            pendingAvatarPos.x = Math.max(0, Math.min(100, startPosX + moveX));
+            pendingAvatarPos.y = Math.max(0, Math.min(100, startPosY + moveY));
+            container.style.backgroundPosition = `${pendingAvatarPos.x}% ${pendingAvatarPos.y}%`;
+        }
+
+        function dragMoveTouch(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            e.preventDefault(); // 关键：阻止默认滚动行为，确保可以水平移动
+            const container = document.getElementById('avatarCropContainer');
+            const rect = container.getBoundingClientRect();
+            const dx = e.touches[0].clientX - dragStartX;
+            const dy = e.touches[0].clientY - dragStartY;
+            const moveX = (dx / rect.width) * 100;
+            const moveY = (dy / rect.height) * 100;
+            pendingAvatarPos.x = Math.max(0, Math.min(100, startPosX + moveX));
+            pendingAvatarPos.y = Math.max(0, Math.min(100, startPosY + moveY));
+            container.style.backgroundPosition = `${pendingAvatarPos.x}% ${pendingAvatarPos.y}%`;
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        function resetCropPosition() {
+            pendingAvatarPos = { x: 50, y: 50 };
+            document.getElementById('avatarCropContainer').style.backgroundPosition = '50% 50%';
+        }
+
+        function confirmAvatarUpload() {
+            if (pendingAvatarDataUrl && uploadingAgentId) {
+                const agent = appData.agents.find(a => a.id === uploadingAgentId);
+                if (agent) {
+                    agent.avatar = pendingAvatarDataUrl;
+                    agent.avatarPos = { ...pendingAvatarPos };
+                    saveData();
+                    renderUI();
+                }
+            }
+            closeModal('avatarPreviewModal');
+            pendingAvatarDataUrl = null;
+            uploadingAgentId = null;
+            pendingAvatarPos = { x: 50, y: 50 };
+        }
+
+        function cancelAvatarUpload() {
+            closeModal('avatarPreviewModal');
+            pendingAvatarDataUrl = null;
+            uploadingAgentId = null;
+            pendingAvatarPos = { x: 50, y: 50 };
+            document.getElementById('avatarFileInput').click();
+        }
+
+        // ========== 删除密探 ==========
+        function triggerDelete(event, agentId) {
+            event.stopPropagation();
+            if (confirm('确定要删除该密探吗？')) deleteAgent(agentId);
+        }
+
+        function deleteAgent(agentId) {
+            appData.agents = appData.agents.filter(a => a.id !== agentId);
+            appData.limitedPools.forEach(pool => {
+                if (pool.upAgentIds) pool.upAgentIds = pool.upAgentIds.filter(id => id !== agentId);
+            });
+            saveData();
+            renderUI();
+        }
+
+        // ========== 弹窗 ==========
+        function openRecordModal(agentId, agentName) {
+            selectedAgent = { id: agentId, name: agentName };
+            document.getElementById('modalAgentName').innerText = `登记出金 - ${agentName}`;
+            document.getElementById('recordModal').classList.add('active');
+        }
+
+        function openCreatePoolModal() {
+            document.getElementById('newPoolNameInput').value = '';
+            document.getElementById('createPoolModal').classList.add('active');
+        }
+
+        function openSetUPModal() {
+            const currentPool = getCurrentLimitedPool();
+            const upIds = currentPool.upAgentIds || [];
+            document.getElementById('upCheckboxes').innerHTML = appData.agents.map(agent => `
+            <label class="checkbox-item">
+                <input type="checkbox" value="${agent.id}" ${upIds.includes(agent.id) ? 'checked' : ''}>
+                ${agent.name} <span style="font-size:0.65rem;color:${ELEMENT_COLORS[agent.element] || '#aaa'};">[${agent.element}]</span>
+            </label>`).join('');
+            document.getElementById('setUpModal').classList.add('active');
+        }
+
+        function openAddAgentModal() {
+            document.getElementById('newAgentNameInput').value = '';
+            if (currentElementFilter !== '全部') {
+                document.getElementById('newAgentElementInput').value = currentElementFilter;
+            } else {
+                document.getElementById('newAgentElementInput').value = '风';
+            }
+            document.getElementById('addAgentModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function confirmSetUpAgents() {
+            const checkboxes = document.querySelectorAll('#upCheckboxes input[type="checkbox"]:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+            getCurrentLimitedPool().upAgentIds = selectedIds;
+            saveData();
+            renderUI();
+            closeModal('setUpModal');
+        }
+
+        function confirmAddAgent() {
+            const name = document.getElementById('newAgentNameInput').value.trim();
+            const element = document.getElementById('newAgentElementInput').value;
+            if (!name) { alert('请输入密探名字'); return; }
+            appData.agents.push({
+                id: 'agent_' + Date.now(),
+                name,
+                avatar: '',
+                element,
+                avatarPos: { x: 50, y: 50 }
+            });
+            saveData();
+            renderUI();
+            closeModal('addAgentModal');
+        }
+
+        function confirmCreatePool() {
+            const name = document.getElementById('newPoolNameInput').value.trim();
+            if (!name) { alert('请输入卡池名称'); return; }
+            appData.limitedPools.push({
+                id: 'pool_' + Date.now(),
+                name,
+                upAgentIds: [],
+                records: []
+            });
+            appData.currentLimitedPoolId = appData.limitedPools[appData.limitedPools.length - 1].id;
+            saveData();
+            renderUI();
+            closeModal('createPoolModal');
+        }
+
+        function confirmRecord() {
+            const input = document.getElementById('pullCountInput');
+            const pulls = parseInt(input.value);
+            if (!pulls || pulls <= 0) { alert('请输入有效的抽数'); return; }
+            getCurrentRecords().unshift({
+                id: 'rec_' + Date.now(),
+                agentId: selectedAgent.id,
+                agentName: selectedAgent.name,
+                pulls,
+                timestamp: Date.now()
+            });
+            saveData();
+            renderUI();
+            closeModal('recordModal');
+            input.value = 10;
+        }
+
+        function deleteRecord(index) {
+            if (confirm('确定要删除这条记录吗？')) {
+                getCurrentRecords().splice(index, 1);
+                saveData();
+                renderUI();
+            }
+        }
+
+        function deleteCurrentPool() {
+            if (appData.limitedPools.length <= 1) { alert('至少需要保留一个限时 UP 池！'); return; }
+            const currentPool = getCurrentLimitedPool();
+            if (confirm(`确定要删除【${currentPool.name}】及其所有记录吗？`)) {
+                appData.limitedPools = appData.limitedPools.filter(p => p.id !== currentPool.id);
+                appData.currentLimitedPoolId = appData.limitedPools[0].id;
+                saveData();
+                renderUI();
+            }
+        }
+
+        function clearCurrentPoolRecords() {
+            if (confirm('确定要清空当前选中卡池的所有记录吗？')) {
+                if (appData.category === 'standard') appData.standardPool.records = [];
+                else getCurrentLimitedPool().records = [];
+                saveData();
+                renderUI();
+            }
+        }
+
+        // ========== 导出/导入（手机友好） ==========
+        function openExportModal() {
+            document.getElementById('exportTextArea').value = JSON.stringify(appData, null, 2);
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function copyExportText() {
+            const textArea = document.getElementById('exportTextArea');
+            textArea.select();
+            textArea.setSelectionRange(0, 999999); // 移动端
+            try {
+                document.execCommand('copy');
+                alert('已复制到剪贴板！请粘贴到备忘录或聊天窗口保存。');
+            } catch (e) {
+                alert('复制失败，请手动长按全选复制。');
+            }
+        }
+
+        function openImportModal() {
+            document.getElementById('importTextArea').value = '';
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function confirmImportText() {
+            const text = document.getElementById('importTextArea').value.trim();
+            if (!text) { alert('请粘贴 JSON 备份数据'); return; }
+            try {
+                const importedData = JSON.parse(text);
+                if (importedData.limitedPools && importedData.standardPool) {
+                    appData = importedData;
+                    appData.agents.forEach(agent => {
+                        if (!agent.element) agent.element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+                        if (!agent.avatarPos) agent.avatarPos = { x: 50, y: 50 };
+                    });
+                    saveData();
+                    renderUI();
+                    closeModal('importModal');
+                    alert('数据导入成功！');
+                } else {
+                    alert('导入失败，备份数据格式不正确。');
+                }
+            } catch (e) {
+                alert('导入失败，无法解析 JSON 数据。请检查是否完整复制。');
+            }
+        }
+
+        function importDataFromFile(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function (e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.limitedPools && importedData.standardPool) {
+                        appData = importedData;
+                        appData.agents.forEach(agent => {
+                            if (!agent.element) agent.element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+                            if (!agent.avatarPos) agent.avatarPos = { x: 50, y: 50 };
+                        });
+                        saveData();
+                        renderUI();
+                        closeModal('importModal');
+                        alert('数据导入成功！');
+                    } else {
+                        alert('导入失败，备份文件格式不符合要求。');
+                    }
+                } catch (err) {
+                    alert('导入失败，解析 JSON 文件出错。');
+                }
+            };
+            if (event.target.files[0]) fileReader.readAsText(event.target.files[0]);
+            event.target.value = '';
+        }
+    </script>
+</body>
+
+</html>
